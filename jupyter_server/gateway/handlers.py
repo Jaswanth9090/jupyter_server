@@ -157,7 +157,13 @@ class GatewayWebSocketClient(LoggingConfigurable):
         )
         self.log.info(f"Connecting to {ws_url}")
         kwargs: dict = {}
-        kwargs = GatewayClient.instance().load_connection_args(**kwargs)
+        if GatewayClient.instance().kg_apikey and GatewayClient.instance().kg_iamurl is not None:
+            KG_HEADERS = GatewayClient.instance().TokenGenerator()
+            kwargs = GatewayClient.instance().load_connection_args(**kwargs)
+            kwargs['headers'] = KG_HEADERS
+            self.log.debug('Token regenerated')
+        else:
+            kwargs = GatewayClient.instance().load_connection_args(**kwargs)
 
         request = HTTPRequest(ws_url, **kwargs)
         self.ws_future = websocket_connect(request)
